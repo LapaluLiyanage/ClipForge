@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ClipForge</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">
+    <img src="icons/icon32.png" alt="" width="20" height="20">
+    <span>ClipForge</span>
+  </div>
+  <div class="bar-right">
+    <span id="dot" class="dot" title="Helper status"></span>
+    <button id="btn-pin" class="icon-btn" title="Pin as a separate window" aria-label="Pin as a separate window">&#128204;</button>
+    <button id="btn-settings" class="icon-btn" title="Settings" aria-label="Settings">&#9881;</button>
+  </div>
+</header>
+
+<!-- Helper unreachable -->
+<section id="offline" class="panel hidden">
+  <h2>Helper isn't running</h2>
+  <p>ClipForge needs its local helper to merge streams and encode audio. Start it, then hit retry.</p>
+  <ol class="steps">
+    <li>Open the <code>core</code> folder</li>
+    <li>Double-click <code>run.bat</code> (Windows) or run <code>./run.sh</code></li>
+    <li>Wait for <em>Listening on http://127.0.0.1:8787</em></li>
+  </ol>
+  <button id="btn-retry" class="primary">Retry connection</button>
+</section>
+
+<!-- Missing requirements -->
+<section id="preflight" class="panel hidden">
+  <h2>Missing requirement</h2>
+  <ul id="preflight-list" class="checks"></ul>
+  <button id="btn-recheck" class="ghost">Check again</button>
+</section>
+
+<!-- Main -->
+<main id="main" class="hidden">
+
+  <div class="url-row">
+    <input id="url" type="url" placeholder="Paste a video URL" spellcheck="false" autocomplete="off">
+    <button id="btn-load" class="ghost" title="Load">Load</button>
+  </div>
+
+  <div id="probe-error" class="alert hidden"></div>
+
+  <div id="preview" class="preview hidden">
+    <img id="thumb" alt="">
+    <div class="meta">
+      <div id="title" class="title"></div>
+      <div id="sub" class="sub"></div>
+    </div>
+  </div>
+
+  <div id="probing" class="probing hidden"><span class="spin"></span> Reading video…</div>
+
+  <div id="controls" class="hidden">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-mode="video" role="tab">Video</button>
+      <button class="tab" data-mode="mp3" role="tab">MP3</button>
+      <button class="tab" data-mode="wav" role="tab">WAV</button>
+      <button class="tab" data-mode="audio" role="tab">Other</button>
+    </div>
+
+    <!-- Video -->
+    <div class="pane" data-pane="video">
+      <label class="field">
+        <span>Quality</span>
+        <select id="quality"></select>
+      </label>
+      <label class="field">
+        <span>Container</span>
+        <select id="container"></select>
+      </label>
+      <p class="hint">Video and audio arrive as separate streams above 360p — the helper merges them with ffmpeg.</p>
+    </div>
+
+    <!-- MP3 -->
+    <div class="pane hidden" data-pane="mp3">
+      <label class="field">
+        <span>Bitrate</span>
+        <select id="bitrate"></select>
+      </label>
+      <p class="hint" id="mp3-hint">Re-encoded from the source audio. Going above the source bitrate adds size, not quality.</p>
+    </div>
+
+    <!-- WAV -->
+    <div class="pane hidden" data-pane="wav">
+      <label class="field">
+        <span>Bit depth</span>
+        <select id="wav-depth"></select>
+      </label>
+      <label class="field">
+        <span>Sample rate</span>
+        <select id="wav-rate"></select>
+      </label>
+      <label class="field">
+        <span>Channels</span>
+        <select id="wav-channels"></select>
+      </label>
+      <p class="hint">Uncompressed PCM — roughly 10 MB per minute at 16-bit/44.1 kHz.</p>
+    </div>
+
+    <!-- Other audio -->
+    <div class="pane hidden" data-pane="audio">
+      <label class="field">
+        <span>Format</span>
+        <select id="audio-format"></select>
+      </label>
+      <label class="field">
+        <span>Bitrate</span>
+        <select id="audio-bitrate"></select>
+      </label>
+      <p class="hint">M4A and Opus keep the original stream where possible, so there's no quality loss.</p>
+    </div>
+
+    <button id="btn-go" class="primary big">Download</button>
+  </div>
+
+  <div id="jobs" class="jobs"></div>
+</main>
+
+<!-- Settings -->
+<section id="settings" class="panel hidden">
+  <h2>Settings</h2>
+  <label class="field col">
+    <span>Save to</span>
+    <input id="set-output" type="text" spellcheck="false">
+  </label>
+  <label class="field col">
+    <span>Filename template</span>
+    <input id="set-template" type="text" spellcheck="false">
+  </label>
+  <label class="field col">
+    <span>Use cookies from browser <small>(for content your account can already see)</small></span>
+    <select id="set-cookies">
+      <option value="">Off</option>
+      <option value="chrome">Chrome</option>
+      <option value="edge">Edge</option>
+      <option value="brave">Brave</option>
+      <option value="firefox">Firefox</option>
+    </select>
+  </label>
+  <label class="check"><input id="set-thumb" type="checkbox"> Embed cover art</label>
+  <label class="check"><input id="set-meta" type="checkbox"> Embed title/artist metadata</label>
+  <label class="check"><input id="set-chapters" type="checkbox"> Embed chapters</label>
+  <label class="check"><input id="set-subs" type="checkbox"> Embed subtitles in video</label>
+
+  <div id="settings-msg" class="alert ok hidden"></div>
+  <div class="row">
+    <button id="btn-save" class="primary">Save</button>
+    <button id="btn-close-settings" class="ghost">Back</button>
+  </div>
+  <button id="btn-update" class="ghost wide">Update yt-dlp</button>
+  <p class="hint">YouTube changes how it serves streams every few weeks. If downloads start failing, update yt-dlp and restart the helper.</p>
+  <p class="legal">Download only what you have the right to: your own uploads, Creative Commons or public-domain material, or content the rights holder permits you to save.</p>
+</section>
+
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ClipForge</title>
+<style>
+:root{--bg:#0f1117;--bg2:#171a23;--bg3:#1e222d;--line:#2a2f3d;--fg:#e7e9ee;--dim:#9aa1b1;--accent:#6d5cf7;--accent2:#8b7bff;--ok:#3ecf8e;--err:#f2585b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:28px 18px 60px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+h1{font-size:20px;margin:0;font-weight:680;letter-spacing:-.2px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff}
+.tagline{color:var(--dim);margin:0 0 22px;font-size:13px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:8px}
+input,select{background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit;width:100%;outline:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(109,92,247,.18)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:0;padding:9px 16px;font-weight:600;background:var(--accent);color:#fff;transition:.15s;white-space:nowrap}
+button:hover{background:var(--accent2)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{background:var(--bg3);color:var(--fg);border:1px solid var(--line)}
+button.ghost:hover{border-color:var(--accent)}
+.tabs{display:flex;gap:3px;background:var(--bg3);border-radius:9px;padding:3px;margin:14px 0}
+.tab{flex:1;background:none;color:var(--dim);padding:8px 0;font-weight:560}
+.tab.active{background:var(--accent);color:#fff}
+.tab:hover:not(.active){background:transparent;color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label.f{display:flex;flex-direction:column;gap:5px}
+label.f>span{color:var(--dim);font-size:12px}
+.preview{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.preview img{width:132px;height:74px;object-fit:cover;border-radius:8px;background:var(--bg3)}
+.ptitle{font-weight:620;font-size:14px;line-height:1.3}
+.psub{color:var(--dim);font-size:12.5px;margin-top:3px}
+.hint{color:#737a8c;font-size:12px;margin:10px 0 0}
+.alert{background:rgba(242,88,91,.1);border:1px solid rgba(242,88,91,.35);color:#ffb3b5;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.alert.ok{background:rgba(62,207,142,.1);border-color:rgba(62,207,142,.35);color:#9ff0cb}
+.job{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:9px}
+.jtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.jname{font-size:13px;font-weight:560;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:3px 7px;border-radius:5px;background:var(--bg3);color:var(--dim)}
+.track{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:10px 0 6px}
+.fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .25s}
+.fill.ok{background:var(--ok)}.fill.err{background:var(--err)}
+.jbot{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.jstat{color:var(--dim);font-size:12px}
+.jstat.err{color:#ff9d9f}
+.mini{background:none;border:1px solid var(--line);color:var(--dim);padding:3px 10px;font-size:12px;font-weight:500}
+.mini:hover{background:none;color:var(--fg);border-color:var(--accent)}
+.hide{display:none!important}
+.legal{color:#6c7386;font-size:12px;border-top:1px solid var(--line);padding-top:14px;margin-top:22px;line-height:1.55}
+.spin{width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3v10m0 0 4-4m-4 4-4-4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>
+    </div>
+    <h1>ClipForge</h1>
+  </header>
+  <p class="tagline">Local helper UI — same engine the browser extension uses.</p>
+
+  <div id="preflight" class="alert hide"></div>
+
+  <div class="card">
+    <div class="row">
+      <input id="url" type="url" placeholder="Paste a video URL and press Enter" autocomplete="off" spellcheck="false">
+      <button id="load">Load</button>
+    </div>
+    <div id="probing" class="hint hide"><span class="spin"></span>Reading video…</div>
+    <div id="perr" class="alert hide" style="margin-top:12px"></div>
+
+    <div id="controls" class="hide">
+      <div class="preview" style="margin-top:16px">
+        <img id="thumb" alt="">
+        <div><div id="ptitle" class="ptitle"></div><div id="psub" class="psub"></div></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-mode="video">Video</button>
+        <button class="tab" data-mode="mp3">MP3</button>
+        <button class="tab" data-mode="wav">WAV</button>
+        <button class="tab" data-mode="audio">Other</button>
+      </div>
+
+      <div class="grid" id="pane-video">
+        <label class="f"><span>Quality</span><select id="quality"></select></label>
+        <label class="f"><span>Container</span><select id="container"></select></label>
+      </div>
+      <div class="grid hide" id="pane-mp3">
+        <label class="f"><span>Bitrate</span><select id="bitrate"></select></label>
+      </div>
+      <div class="grid hide" id="pane-wav">
+        <label class="f"><span>Bit depth</span><select id="wavDepth"></select></label>
+        <label class="f"><span>Sample rate</span><select id="wavRate"></select></label>
+        <label class="f"><span>Channels</span><select id="wavChannels"></select></label>
+      </div>
+      <div class="grid hide" id="pane-audio">
+        <label class="f"><span>Format</span><select id="audioFormat"></select></label>
+        <label class="f"><span>Bitrate</span><select id="audioBitrate"></select></label>
+      </div>
+
+      <p class="hint" id="modehint"></p>
+      <button id="go" style="width:100%;margin-top:14px;padding:11px">Download</button>
+    </div>
+  </div>
+
+  <div id="jobs"></div>
+
+  <p class="legal">
+    ClipForge saves to your own machine. Download only what you have the right to keep —
+    your own uploads, Creative Commons or public-domain material, or content the rights
+    holder allows you to save. Saving other people's videos from streaming platforms
+    generally breaks their terms of service.
+  </p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let OPT=null, CUR=null, MODE="video", timer=null, seq=0;
+
+const api = async (p,o={}) => {
+  const r = await fetch(p,{headers:{"Content-Type":"application/json"},...o});
+  const t = await r.text(); let b=null;
+  try{b=t?JSON.parse(t):null}catch{b={detail:t}}
+  if(!r.ok) throw new Error((b&&b.detail)||`HTTP ${r.status}`);
+  return b;
+};
+const show=(el,on)=>el.classList.toggle("hide",!on);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function fill(sel,items,want){sel.innerHTML="";for(const i of items){const o=document.createElement("option");o.value=i.id;o.textContent=i.label;sel.appendChild(o)}if(want&&items.some(i=>i.id===want))sel.value=want}
+function bytes(n){if(!n)return"";const u=["B","KB","MB","GB"];let v=n,i=0;while(v>=1024&&i<u.length-1){v/=1024;i++}return v.toFixed(i?1:0)+" "+u[i]}
+function secs(s){if(s==null)return"";const m=Math.floor(s/60);return m?`${m}m ${Math.round(s%60)}s`:`${Math.round(s)}s`}
+
+const HINTS={
+  video:"Above 360p, video and audio are separate streams — ffmpeg merges them into one file.",
+  mp3:"Re-encoded from the source audio. Encoding above the source bitrate adds size, not quality.",
+  wav:"Uncompressed PCM — roughly 10 MB per minute at 16-bit / 44.1 kHz.",
+  audio:"M4A and Opus can often be copied without re-encoding, so nothing is lost."
+};
+
+async function boot(){
+  try{
+    const h = await api("/health");
+    if(!h.ok){
+      const bad = h.checks.filter(c=>!c.ok).map(c=>`<strong>${esc(c.label)}</strong> — ${esc(c.detail)}`).join("<br>");
+      $("preflight").innerHTML = "Missing requirement:<br>"+bad;
+      show($("preflight"),true);
+    }
+    OPT = await api("/options");
+    fill($("quality"),OPT.video_qualities,"1080");
+    fill($("container"),OPT.video_containers,"mp4");
+    fill($("bitrate"),OPT.mp3_bitrates,"320");
+    fill($("wavDepth"),OPT.wav_depths,"16");
+    fill($("wavRate"),OPT.wav_rates,"44100");
+    fill($("wavChannels"),OPT.wav_channels,"source");
+    fill($("audioFormat"),OPT.other_audio_formats,"m4a");
+    fill($("audioBitrate"),OPT.mp3_bitrates,"192");
+    setMode("video");
+    refresh();
+  }catch(e){
+    $("preflight").textContent = "Cannot reach the helper: "+e.message;
+    show($("preflight"),true);
+  }
+}
+
+function setMode(m){
+  MODE=m;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.mode===m));
+  ["video","mp3","wav","audio"].forEach(k=>show($("pane-"+k),k===m));
+  $("modehint").textContent=HINTS[m];
+  $("go").textContent = m==="video"?"Download video":m==="mp3"?"Extract MP3":m==="wav"?"Extract WAV":"Extract audio";
+}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>setMode(t.dataset.mode));
+
+async function probe(url){
+  const my=++seq;
+  show($("perr"),false); show($("controls"),false); show($("probing"),true);
+  try{
+    const info=await api("/probe",{method:"POST",body:JSON.stringify({url})});
+    if(my!==seq)return;
+    CUR=info;
+    $("thumb").src=info.thumbnail||"";
+    $("ptitle").textContent=info.title||"Untitled";
+    $("psub").textContent=[info.uploader,info.duration_string,info.available_qualities[0]&&"up to "+info.available_qualities[0].label].filter(Boolean).join(" · ");
+    const hs=info.available_qualities.map(q=>q.height);
+    const allowed=OPT.video_qualities.filter(q=>q.height===null||hs.includes(q.height)).map(q=>{
+      const m=info.available_qualities.find(a=>a.height===q.height);
+      return m&&m.approx_size?{id:q.id,label:`${q.label} · ~${m.approx_size}`}:q;
+    });
+    const want=$("quality").value;
+    fill($("quality"),allowed,allowed.some(a=>a.id===want)?want:allowed[0].id);
+    show($("controls"),true);
+  }catch(e){
+    if(my!==seq)return;
+    $("perr").textContent=e.message; show($("perr"),true);
+  }finally{ if(my===seq) show($("probing"),false); }
+}
+
+$("load").onclick=()=>{const u=$("url").value.trim(); if(u) probe(u)};
+$("url").addEventListener("keydown",e=>{if(e.key==="Enter")$("load").click()});
+
+$("go").onclick=async()=>{
+  const url=$("url").value.trim(); if(!url)return;
+  $("go").disabled=true;
+  try{
+    const job=await api("/download",{method:"POST",body:JSON.stringify({
+      url, mode:MODE,
+      quality:$("quality").value, container:$("container").value,
+      bitrate: MODE==="audio"?$("audioBitrate").value:$("bitrate").value,
+      audio_format:$("audioFormat").value,
+      wav_depth:$("wavDepth").value, wav_rate:$("wavRate").value, wav_channels:$("wavChannels").value,
+      title:CUR&&CUR.title, thumbnail:CUR&&CUR.thumbnail
+    })});
+    stream(job.id);
+    refresh();
+  }catch(e){ $("perr").textContent=e.message; show($("perr"),true) }
+  finally{ $("go").disabled=false }
+};
+
+// Live progress over server-sent events.
+function stream(id){
+  const es=new EventSource(`/jobs/${id}/events`);
+  es.onmessage=ev=>{
+    const j=JSON.parse(ev.data);
+    paintOne(j);
+    if(["done","error","cancelled"].includes(j.status)){ es.close(); refresh(); }
+  };
+  es.onerror=()=>{ es.close(); if(!timer) timer=setInterval(refresh,900) };
+}
+
+function label(j){
+  if(j.status==="error") return j.error;
+  switch(j.stage){
+    case "resolving": return "Resolving streams…";
+    case "downloading":{
+      const p=[`${j.progress.toFixed(0)}%`];
+      if(j.total)p.push(`${bytes(j.downloaded)} / ${bytes(j.total)}`);
+      if(j.speed)p.push(`${bytes(j.speed)}/s`);
+      if(j.eta)p.push(`${secs(j.eta)} left`);
+      return p.join(" · ");
+    }
+    case "merging": return "Merging video + audio…";
+    case "converting": return "Encoding audio…";
+    case "artwork": return "Writing cover art…";
+    case "tagging": return "Writing metadata…";
+    case "done": return j.filename||"Saved";
+    case "cancelled": return "Cancelled";
+    default: return "Queued";
+  }
+}
+
+function node(j){
+  const el=document.createElement("div");
+  el.className="job"; el.id="job-"+j.id;
+  const active=j.status==="running"||j.status==="queued";
+  const cls=j.status==="error"?"err":j.status==="done"?"ok":"";
+  el.innerHTML=`<div class="jtop"><div class="jname">${esc(j.title||j.url)}</div><span class="tag">${j.mode}</span></div>
+    <div class="track"><div class="fill ${cls}" style="width:${j.status==="done"?100:j.progress}%"></div></div>
+    <div class="jbot"><div class="jstat ${j.status==="error"?"err":""}">${esc(label(j))}</div><div class="jact"></div></div>`;
+  const act=el.querySelector(".jact");
+  if(active){
+    const b=document.createElement("button"); b.className="mini"; b.textContent="Cancel";
+    b.onclick=()=>api(`/jobs/${j.id}/cancel`,{method:"POST"}).then(refresh).catch(()=>{});
+    act.appendChild(b);
+  }else if(j.status==="done"&&j.filepath){
+    const a=document.createElement("button"); a.className="mini"; a.textContent="Save a copy";
+    a.onclick=()=>{location.href=`/file/${j.id}`};
+    const b=document.createElement("button"); b.className="mini"; b.textContent="Show in folder";
+    b.style.marginLeft="6px";
+    b.onclick=()=>api(`/reveal/${j.id}`,{method:"POST"}).catch(()=>{});
+    act.append(a,b);
+  }
+  return el;
+}
+
+function paintOne(j){
+  const old=document.getElementById("job-"+j.id);
+  if(old) old.replaceWith(node(j)); else $("jobs").prepend(node(j));
+}
+
+async function refresh(){
+  try{
+    const {jobs}=await api("/jobs");
+    $("jobs").innerHTML="";
+    jobs.slice(0,10).forEach(j=>$("jobs").appendChild(node(j)));
+    if(!jobs.some(j=>j.status==="running"||j.status==="queued")&&timer){clearInterval(timer);timer=null}
+  }catch{}
+}
+
+boot();
+</script>
+</body>
+</html>

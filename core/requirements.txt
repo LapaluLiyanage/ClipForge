@@ -1,0 +1,5 @@
+# ClipForge local helper
+yt-dlp>=2024.12.13
+fastapi>=0.110.0
+uvicorn>=0.27.0
+pydantic>=2.6.0
