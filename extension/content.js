@@ -1,13 +1,27 @@
-/* ClipForge content script — a floating button on YouTube watch pages.
-   Deliberately not spliced into YouTube's own action row: that markup changes
+/* ClipForge content script — a floating button on YouTube and Facebook video pages.
+   Deliberately not spliced into either site's own action row: that markup changes
    often, and a self-contained pill survives their redesigns. */
 
 (function () {
   const BTN_ID = "clipforge-fab";
 
-  const onWatchPage = () =>
-    /\/watch|\/shorts\//.test(location.pathname) ||
-    location.hostname === "music.youtube.com";
+  const host = location.hostname;
+  const isFacebook = /(^|\.)facebook\.com$/.test(host);
+
+  // Paths that point at a single Facebook video: /watch/?v=, /reel/<id>,
+  // /<page>/videos/<id>, /videos/<id>, /share/v/<id>, /share/r/<id>, /video.php?v=
+  const FB_VIDEO_PATH =
+    /^\/(watch\/?($|\?)|watch\/live|reel\/|videos\/|video\.php|share\/[vr]\/|[^/]+\/videos\/)/;
+
+  const onWatchPage = () => {
+    if (isFacebook) {
+      return FB_VIDEO_PATH.test(location.pathname + location.search);
+    }
+    return (
+      /\/watch|\/shorts\//.test(location.pathname) ||
+      location.hostname === "music.youtube.com"
+    );
+  };
 
   function mount() {
     if (!onWatchPage()) { unmount(); return; }
@@ -53,10 +67,20 @@
 
   mount();
 
-  // YouTube is a single-page app: re-check on its own navigation event and on
-  // DOM churn, debounced so we're not doing work on every mutation.
+  // Both sites are single-page apps. YouTube fires its own navigation event;
+  // Facebook fires nothing we can hear from an isolated content script, so we
+  // also watch for the URL changing. Debounced so we're not doing work on
+  // every mutation.
   let t = null;
   const schedule = () => { clearTimeout(t); t = setTimeout(mount, 350); };
   window.addEventListener("yt-navigate-finish", schedule);
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: false });
+
+  let lastHref = location.href;
+  setInterval(() => {
+    if (location.href !== lastHref) {
+      lastHref = location.href;
+      schedule();
+    }
+  }, 700);
 })();

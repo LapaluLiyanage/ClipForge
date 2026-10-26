@@ -1,13 +1,15 @@
 # ClipForge
 
 Save video as **MP4**, or extract **MP3** / **WAV** audio, with real quality control.
+Works with **YouTube** and **Facebook** (watch pages, Reels, `fb.watch` links, and
+`/videos/` posts).
 A Chrome (Manifest V3) extension for the interface, and a small local Python helper
 that does the actual work.
 
 ```
 ┌──────────────────┐   HTTP (loopback only)   ┌────────────────────────┐
 │  Chrome extension │ ───────────────────────► │  ClipForge helper      │
-│  popup + YouTube  │ ◄─────────────────────── │  FastAPI + yt-dlp      │
+│ popup + YT / FB   │ ◄─────────────────────── │  FastAPI + yt-dlp      │
 │  floating button  │      live progress       │  + ffmpeg              │
 └──────────────────┘                          └────────────────────────┘
                                                         │
@@ -33,7 +35,7 @@ has to be muxed. That is what the helper is for: the extension is the interface,
 the helper is the muscle.
 
 > **Note on distribution:** the Chrome Web Store's developer policies prohibit
-> extensions that download from YouTube, so ClipForge is built to be loaded
+> extensions that download from YouTube or Facebook, so ClipForge is built to be loaded
 > unpacked, for personal use. It is not publishable there.
 
 ---
@@ -187,12 +189,22 @@ port 8787. Restart it, or run `python -m clipforge.server --port 9001` and chang
 **"ffmpeg is missing"** — install it (above) and restart the helper so it picks up
 the new PATH.
 
-**Downloads suddenly fail** — YouTube changed something. This is normal and happens
+**Downloads suddenly fail** — YouTube or Facebook changed something. This is normal and happens
 every few weeks. Settings → **Update yt-dlp**, then restart the helper. Fixes it
 almost every time.
 
 **"Sign in to confirm"** — age-restricted. Settings → *Use cookies from browser* →
 Chrome. yt-dlp then reuses your existing login.
+
+**Facebook: "asking for a login" / "Cannot parse data"** — the video isn't fully
+public (friends-only, group, or login-walled). Settings → *Use cookies from browser* →
+Chrome, while signed in to Facebook in that browser. Videos you can't watch while
+signed in can't be saved either.
+
+**Facebook: the button doesn't show in my feed** — the floating button appears on
+single-video pages (a `/watch`, `/reel/` or `/videos/` URL). In the feed, click the
+video's timestamp to open it, or right-click its link → *Open ClipForge for this
+link*, or paste the URL into the popup.
 
 **HTTP 429** — you've been rate-limited. Wait a few minutes.
 
@@ -203,9 +215,9 @@ characters), but you can change `filename_template` in Settings.
 
 ## Please read this part
 
-YouTube's Terms of Service **do not permit** downloading videos except through
-features YouTube itself provides. Independent of that, most videos are protected
-by copyright.
+YouTube's and Facebook's Terms of Service **do not permit** downloading videos except
+through features those platforms provide themselves. Independent of that, most videos
+are protected by copyright.
 
 ClipForge is built for the cases where you have the right to keep the file:
 
@@ -216,7 +228,7 @@ ClipForge is built for the cases where you have the right to keep the file:
 - archival or research use that your jurisdiction's law actually allows
 
 Using it on anything else is on you, and it is not a grey area with respect to
-YouTube's terms. If you put this on a CV or in a portfolio, expect to be asked
+the platforms' terms. If you put this on a CV or in a portfolio, expect to be asked
 about exactly this — having a straight answer about scope and licensing is a much
 better look than not having thought about it.
 

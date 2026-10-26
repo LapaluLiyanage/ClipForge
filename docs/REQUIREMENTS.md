@@ -82,7 +82,7 @@ admin rights, or any third-party service.
 
 | Not doing | Why |
 |---|---|
-| Chrome Web Store publication | Store policy prohibits YouTube downloaders |
+| Chrome Web Store publication | Store policy prohibits YouTube/Facebook downloaders |
 | Bypassing DRM or paid content | Illegal in most jurisdictions under anti-circumvention law; also not what this is for |
 | Extension-only operation, no helper | Technically impossible for merged video or any audio encoding |
 | Bundling ffmpeg binaries | Licensing and size; `winget`/`brew`/`apt` is one line |
@@ -134,7 +134,7 @@ four intact files (`… .mp4`, `… .mp3`, `… .wav`, `… (2).mp4`).
 
 ## 5. Known limits
 
-- **YouTube changes break yt-dlp periodically.** Expected; Settings → Update yt-dlp.
+- **YouTube and Facebook changes break yt-dlp periodically.** Expected; Settings → Update yt-dlp.
 - **Age-restricted videos need cookies.** Supported, off by default.
 - **Live streams** are probed but downloading one captures from the current point onward.
 - **Playlists**: a playlist URL resolves to its first video. Batch support is the natural next feature.

@@ -152,6 +152,20 @@ function persist() {
 /* ------------------------------------------------------------------ */
 /* probing                                                             */
 /* ------------------------------------------------------------------ */
+// URLs that point at one specific video (YouTube or Facebook). Anything else,
+// such as a feed or home page, is left for the user to paste a link into.
+const VIDEO_PAGE_RE = new RegExp(
+  [
+    "youtube\\.com/(watch|shorts)",
+    "youtu\\.be/",
+    "facebook\\.com/(watch|reel|videos|video\\.php|share/[vr]/)",
+    "facebook\\.com/[^/?#]+/videos/",
+    "fb\\.watch/",
+  ].join("|"),
+  "i"
+);
+const isVideoPageUrl = (url) => VIDEO_PAGE_RE.test(url);
+
 async function autoFillFromTab() {
   // A context-menu click stashes the URL for us; it wins over the active tab.
   try {
@@ -167,7 +181,7 @@ async function autoFillFromTab() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const url = tab && tab.url;
-    if (url && /youtube\.com\/(watch|shorts)|youtu\.be\//.test(url)) {
+    if (url && isVideoPageUrl(url)) {
       $("url").value = url;
       await doProbe(url);
       return;

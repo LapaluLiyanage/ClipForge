@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import queue
+import re
 import shutil
 import subprocess
 import threading
 import time
+import urllib.error
+import urllib.request
 import uuid
 from collections import OrderedDict
 from pathlib import Path
@@ -116,8 +119,46 @@ def _fmt_size(n: Optional[float]) -> Optional[str]:
     return None
 
 
+_FB_REDIRECT_RE = re.compile(
+    r"^https?://(fb\.watch/|(?:[\w-]+\.)?facebook\.com/share/[vrp]/)", re.IGNORECASE
+)
+
+
+def resolve_url(url: str, timeout: float = 15.0) -> str:
+    """Expand Facebook short and share links to the canonical video URL.
+
+    yt-dlp has no extractor for ``fb.watch/...`` or ``facebook.com/share/v/...``;
+    both are just redirects to the real page. Following them here keeps the rest
+    of the pipeline (probe, download, error mapping) identical for every URL.
+    Anything else, or any failure, returns the URL unchanged so yt-dlp can
+    report its own, more specific error.
+    """
+    if not _FB_REDIRECT_RE.match(url):
+        return url
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+            )
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+            final = resp.geturl()
+    except (urllib.error.URLError, OSError, ValueError):
+        return url
+    # Only accept a result that is still on Facebook and no longer a redirector.
+    if re.match(r"^https?://([\w-]+\.)?facebook\.com/", final, re.IGNORECASE) \
+            and not _FB_REDIRECT_RE.match(final):
+        return final
+    return url
+
+
 def probe(url: str) -> Dict[str, Any]:
     """Fetch metadata and the real list of qualities available for *url*."""
+    url = resolve_url(url)
     cfg = config.load()
     opts = _base_opts(cfg)
     opts["skip_download"] = True
@@ -449,8 +490,9 @@ class Job:
         self._emit()
         try:
             opts = self.build_opts(cfg)
+            target_url = resolve_url(self.url)
             with YoutubeDL(opts) as ydl:
-                info = ydl.extract_info(self.url, download=True)
+                info = ydl.extract_info(target_url, download=True)
 
             if info.get("_type") == "playlist":
                 entries = [e for e in (info.get("entries") or []) if e]
@@ -499,6 +541,22 @@ def _friendly_error(raw: str) -> str:
     if "ffmpeg" in lowered and ("not installed" in lowered or "not found" in lowered):
         return ("ffmpeg is missing. ClipForge needs it to merge video with audio "
                 "and to write MP3/WAV. See the README for install steps.")
+    # Facebook: most failures here mean the video is not public, so the fix is
+    # almost always to let yt-dlp use the browser's logged-in session.
+    if ("cannot parse data" in lowered
+            or "you must log in" in lowered
+            or "log in to continue" in lowered
+            or "registered users" in lowered
+            or "login required" in lowered
+            or ("facebook" in lowered and "log in" in lowered)):
+        return ("Facebook is asking for a login. If you can watch this video while "
+                "signed in, set 'cookies_from_browser' in Settings to that browser "
+                "(for example chrome) and try again.")
+    if "facebook" in lowered and ("unavailable" in lowered or "removed" in lowered
+                                   or "privacy" in lowered):
+        return ("This Facebook video is unavailable. It may be private, limited to "
+                "friends or a group, or deleted. If you can view it signed in, set "
+                "'cookies_from_browser' in Settings and retry.")
     if "sign in to confirm" in lowered or "age" in lowered and "restrict" in lowered:
         return ("This video is age-restricted. Set 'cookies_from_browser' in "
                 "Settings to a browser where you are signed in.")
@@ -507,7 +565,7 @@ def _friendly_error(raw: str) -> str:
     if "video unavailable" in lowered:
         return "This video is unavailable in your region or has been removed."
     if "http error 429" in lowered or "too many requests" in lowered:
-        return "YouTube is rate-limiting this machine. Wait a few minutes and retry."
+        return "The site is rate-limiting this machine. Wait a few minutes and retry."
     if "http error 404" in lowered or "not found" in lowered:
         return "That URL returned 'not found' - check it is correct and still public."
     if "http error 403" in lowered:

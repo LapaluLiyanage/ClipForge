@@ -9,7 +9,20 @@ chrome.runtime.onInstalled.addListener(() => {
       id: "clipforge-page",
       title: "Open ClipForge for this page",
       contexts: ["page", "video"],
-      documentUrlPatterns: ["https://*.youtube.com/*", "https://youtu.be/*"],
+      // Only offered on pages that are actually a single video, so the menu
+      // never hands the helper a Facebook feed or a YouTube home page.
+      documentUrlPatterns: [
+        "https://*.youtube.com/*",
+        "https://youtu.be/*",
+        "https://*.facebook.com/watch/*",
+        "https://*.facebook.com/reel/*",
+        "https://*.facebook.com/videos/*",
+        "https://*.facebook.com/*/videos/*",
+        "https://*.facebook.com/share/v/*",
+        "https://*.facebook.com/share/r/*",
+        "https://*.facebook.com/video.php*",
+        "https://fb.watch/*",
+      ],
     });
     chrome.contextMenus.create({
       id: "clipforge-link",

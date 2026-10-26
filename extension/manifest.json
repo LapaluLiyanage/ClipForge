@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "ClipForge",
-  "version": "1.0.0",
-  "description": "Save video as MP4 or extract MP3/WAV audio, with full quality control. Requires the ClipForge helper running locally.",
+  "version": "1.1.0",
+  "description": "Save YouTube and Facebook video as MP4 or extract MP3/WAV audio, with full quality control. Requires the ClipForge helper running locally.",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -34,7 +34,10 @@
       "matches": [
         "https://www.youtube.com/*",
         "https://m.youtube.com/*",
-        "https://music.youtube.com/*"
+        "https://music.youtube.com/*",
+        "https://www.facebook.com/*",
+        "https://web.facebook.com/*",
+        "https://m.facebook.com/*"
       ],
       "js": [
         "content.js"
